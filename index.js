@@ -1,8 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 4000;
+const jwt = require("jsonwebtoken");
 
 // >> MIDDLEWARE
 
@@ -31,6 +33,28 @@ const verifyJWT = (req, res, next) => {
   });
 };
 
+//MongoDB Information
+
+const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vrlyepl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+const client = new MongoClient(url, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
+const dbConnect = async () => {
+  try {
+    client.connect();
+    console.log("DB Connected");
+  } catch (error) {
+    console.log(error.name, error.message);
+  }
+};
+dbConnect();
+
 app.get("/", (req, res) => {
   res.send("Server Started");
 });
@@ -44,8 +68,6 @@ app.post("/authentication", async (req, res) => {
   });
   res.send({ token });
 });
-
-
 
 app.listen(port, () => {
   console.log(`${port}PORT`);
