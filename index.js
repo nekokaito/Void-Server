@@ -60,7 +60,6 @@ const client = new MongoClient(url, {
 const userCollection = client.db("void_tech").collection("users");
 const productCollection = client.db("void_tech").collection("products");
 
-
 const dbConnect = async () => {
   try {
     client.connect();
@@ -92,6 +91,14 @@ const dbConnect = async () => {
   } catch (error) {
     console.log(error.name, error.message);
   }
+
+  //add product
+
+  app.post("/add-products", verifyJWT, verifySeller, async (req, res) => {
+    const product = req.body;
+    const result = await productCollection.insertOne(product);
+    res.send(result);
+  });
 };
 dbConnect();
 
