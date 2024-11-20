@@ -33,6 +33,18 @@ const verifyJWT = (req, res, next) => {
   });
 };
 
+// verify seller
+
+const verifySeller = async (req, res, next) => {
+  const email = req.decoded.email;
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  if (user?.role !== "seller") {
+    return res.send({ message: "Forbidden Access" });
+  }
+  next();
+};
+
 //MongoDB Information
 
 const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vrlyepl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -45,10 +57,38 @@ const client = new MongoClient(url, {
   },
 });
 
+const userCollection = client.db("void_tech").collection("users");
+const productCollection = client.db("void_tech").collection("products");
+
+
 const dbConnect = async () => {
   try {
     client.connect();
     console.log("DB Connected");
+
+    //get user
+    app.get("/user/:email", async (req, res) => {
+      const query = { email: req.params.email };
+      const user = await userCollection.findOne(query);
+      res.send(user);
+    });
+
+    //insert user
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+
+      //checking if user already exist or not
+
+      if (existingUser) {
+        return res.send({ message: "User Already Exists" });
+      }
+      //inserting user in User collection
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
   } catch (error) {
     console.log(error.name, error.message);
   }
