@@ -99,6 +99,94 @@ const dbConnect = async () => {
     const result = await productCollection.insertOne(product);
     res.send(result);
   });
+
+  // get user product
+
+  app.get("/all-products/:email", verifyJWT, verifySeller, async (req, res) => {
+    const userEmail = req.params.email;
+    console.log(userEmail);
+    const result = await productCollection
+      .find({ sellerEmail: userEmail })
+      .toArray();
+    res.send(result);
+  });
+
+   app.get("/all-products/:id", async (req, res) => {
+     const id = req.params.id;
+     const query = { _id: new ObjectId(id) };
+     const result = await productCollection.findOne(query);
+     res.send(result);
+   });
+
+  // get products
+  app.get("/all-products", async (req, res) => {
+    // name searching, sort by price, filter by category, filter by brand
+
+    const { title, sort, category, brand } = req.query;
+
+    const query = {};
+
+    title && (query.title = { $regex: title, $options: "i" });
+
+    category && (query.category = category);
+
+    brand && (query.brand = brand);
+
+    const sortOption = sort === "asc" ? 1 : -1;
+
+    const product = await productCollection
+      .find(query)
+      .sort({ price: sortOption })
+      .toArray();
+
+    const totalProducts = await productCollection.countDocuments(query);
+
+    const productInfo = await productCollection
+      .find(
+        {},
+        {
+          projection: { category: 1, brand: 1 },
+        }
+      )
+      .toArray();
+    const categories = [
+      ...new Set(productInfo.map((product) => product.category)),
+    ];
+    const brands = [...new Set(productInfo.map((product) => product.brand))];
+
+    const data = { product, brands, categories, totalProducts };
+
+    res.json(data);
+  });
+
+
+  // update user data
+
+  app.put("/items/id/:id", async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+    const options = { upsert: true };
+    const itemUpdated = req.body;
+    
+    // title, image, brand, stock, price, category, description;
+
+    const item = {
+      $set: {
+        image: itemUpdated.image,
+        title: itemUpdated.title,
+        brand: itemUpdated.brand,
+        stock: itemUpdated.stock,
+        price: itemUpdated.price,
+        category: itemUpdated.category,
+        },
+    };
+
+    const result = await productCollection.updateOne(filter, item, options);
+    res.send(result);
+  });
+
+
+
 };
 dbConnect();
 
