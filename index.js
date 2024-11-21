@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 4000;
@@ -102,21 +102,26 @@ const dbConnect = async () => {
 
   // get user product
 
-  app.get("/all-products/:email", verifyJWT, verifySeller, async (req, res) => {
-    const userEmail = req.params.email;
-    console.log(userEmail);
-    const result = await productCollection
-      .find({ sellerEmail: userEmail })
-      .toArray();
-    res.send(result);
-  });
+  app.get(
+    "/all-products/:params",
+    verifyJWT,
+    verifySeller,
+    async (req, res) => {
+      const emailReg = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
+      const params = req.params.params;
 
-   app.get("/all-products/:id", async (req, res) => {
-     const id = req.params.id;
-     const query = { _id: new ObjectId(id) };
-     const result = await productCollection.findOne(query);
-     res.send(result);
-   });
+      let finalResult;
+      if (emailReg.test(params)) {
+        finalResult = await productCollection
+          .find({ sellerEmail: params })
+          .toArray();
+      } else {
+        const query = { _id: new ObjectId(params) };
+        finalResult = await productCollection.findOne(query);
+      }
+      res.send(finalResult);
+    }
+  );
 
   // get products
   app.get("/all-products", async (req, res) => {
@@ -159,10 +164,16 @@ const dbConnect = async () => {
     res.json(data);
   });
 
+  app.get("/all-product/:id", async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await productCollection.findOne(query);
+    res.send(result);
+  });
 
   // update user data
 
-  app.put("/update-product/:id", async (req, res) => {
+  app.put("/update-product/:id", verifyJWT, verifySeller, async (req, res) => {
     const id = req.params.id;
     const filter = { _id: new ObjectId(id) };
     const options = { upsert: true };
@@ -184,9 +195,6 @@ const dbConnect = async () => {
     const result = await productCollection.updateOne(filter, item, options);
     res.send(result);
   });
-
-
-
 };
 dbConnect();
 
