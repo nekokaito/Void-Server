@@ -162,12 +162,12 @@ const dbConnect = async () => {
 
   // update user data
 
-  app.put("/items/id/:id", async (req, res) => {
+  app.put("/update-product/:id", async (req, res) => {
     const id = req.params.id;
     const filter = { _id: new ObjectId(id) };
     const options = { upsert: true };
     const itemUpdated = req.body;
-    
+
     // title, image, brand, stock, price, category, description;
 
     const item = {
@@ -178,7 +178,7 @@ const dbConnect = async () => {
         stock: itemUpdated.stock,
         price: itemUpdated.price,
         category: itemUpdated.category,
-        },
+      },
     };
 
     const result = await productCollection.updateOne(filter, item, options);
