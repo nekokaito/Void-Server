@@ -42,19 +42,16 @@ const verifySeller = async (req, res, next) => {
   try {
     const user = await userCollection.findOne(query);
 
-    
     if (user?.role !== "seller" && user?.role !== "admin") {
       return res.status(403).send({ message: "Forbidden Access" });
     }
 
-   
     next();
   } catch (error) {
     console.error("Error verifying seller:", error);
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
 
 //MongoDB Information
 
@@ -81,6 +78,18 @@ const dbConnect = async () => {
       const query = { email: req.params.email };
       const user = await userCollection.findOne(query);
       res.send(user);
+    });
+
+    // get all user
+
+    app.get("/users", async (req, res) => {
+      try {
+        const users = await userCollection.find({}).toArray();
+        res.status(200).json(users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
     });
 
     //insert user
