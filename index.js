@@ -38,12 +38,23 @@ const verifyJWT = (req, res, next) => {
 const verifySeller = async (req, res, next) => {
   const email = req.decoded.email;
   const query = { email: email };
-  const user = await userCollection.findOne(query);
-  if (user?.role !== "seller") {
-    return res.send({ message: "Forbidden Access" });
+
+  try {
+    const user = await userCollection.findOne(query);
+
+    
+    if (user?.role !== "seller" && user?.role !== "admin") {
+      return res.status(403).send({ message: "Forbidden Access" });
+    }
+
+   
+    next();
+  } catch (error) {
+    console.error("Error verifying seller:", error);
+    return res.status(500).send({ message: "Internal Server Error" });
   }
-  next();
 };
+
 
 //MongoDB Information
 
