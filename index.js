@@ -92,6 +92,32 @@ const dbConnect = async () => {
       }
     });
 
+
+    // update user
+
+
+    app.patch("/users/:id", async (req, res) => {
+      const { id } = req.params;
+      const { role } = req.body;
+
+      try {
+        const result = await userCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { role } }
+        );
+        if (result.modifiedCount > 0) {
+          res.send({ success: true, message: "Role updated successfully" });
+        } else {
+          res.send({ success: false, message: "Failed to update role" });
+        }
+      } catch (err) {
+        console.error(err);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal Server Error" });
+      }
+    });
+
     //insert user
 
     app.post("/users", async (req, res) => {
