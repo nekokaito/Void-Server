@@ -92,9 +92,7 @@ const dbConnect = async () => {
       }
     });
 
-
     // update user
-
 
     app.patch("/users/:id", async (req, res) => {
       const { id } = req.params;
@@ -109,6 +107,28 @@ const dbConnect = async () => {
           res.send({ success: true, message: "Role updated successfully" });
         } else {
           res.send({ success: false, message: "Failed to update role" });
+        }
+      } catch (err) {
+        console.error(err);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal Server Error" });
+      }
+    });
+
+    //delete user
+
+    app.delete("/users/:id", async (req, res) => {
+      const { id } = req.params;
+
+      try {
+        const result = await userCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+        if (result.deletedCount > 0) {
+          res.send({ success: true, message: "User removed successfully" });
+        } else {
+          res.send({ success: false, message: "Failed to remove user" });
         }
       } catch (err) {
         console.error(err);
@@ -235,6 +255,7 @@ const dbConnect = async () => {
         stock: itemUpdated.stock,
         price: itemUpdated.price,
         category: itemUpdated.category,
+        description: itemUpdated.description,
       },
     };
 
