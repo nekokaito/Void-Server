@@ -163,7 +163,7 @@ const dbConnect = async () => {
 
   // post message
 
-  app.post("/add-products", async (req, res) => {
+  app.post("/add-message", async (req, res) => {
     const message = req.body;
     const result = await messageCollection.insertOne(message);
     res.send(result);
