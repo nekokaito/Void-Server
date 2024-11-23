@@ -160,23 +160,19 @@ const dbConnect = async () => {
   }
 
   // post message
-  
+
   app.post("/add-products", async (req, res) => {
-  const message = req.body;
-  const result = await messageCollection.insertOne(message);
-  res.send(result);
-});
+    const message = req.body;
+    const result = await messageCollection.insertOne(message);
+    res.send(result);
+  });
 
- // get message
+  // get message
 
- app.get("/message", async (req, res) =>{
-   
-  const message = await messageCollection.find({}).toArray();
-  res.status(200).json(message);
-
- })
-
-
+  app.get("/messages", async (req, res) => {
+    const messages = await messageCollection.find({}).toArray();
+    res.status(200).json(messages);
+  });
 
   //add product
 
@@ -260,6 +256,19 @@ const dbConnect = async () => {
     const data = { product, brands, categories, totalProducts };
 
     res.json(data);
+  });
+
+  //update whishlist
+
+  app.patch("/wishlist/add", verifyJWT, async (req, res) => {
+    const { email, productId } = req.body;
+
+    const result = await userCollection.updateOne(
+      { email: email },
+      { $addToSet: { wishlist: new ObjectId(String(productId)) } }
+    );
+
+    res.send(result);
   });
 
   app.get("/all-product/:id", async (req, res) => {
