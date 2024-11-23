@@ -12,6 +12,8 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     optionsSuccessStatus: 200,
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
@@ -260,7 +262,7 @@ const dbConnect = async () => {
 
   //update whishlist
 
-  app.patch("/wishlist/add", verifyJWT, async (req, res) => {
+  app.patch("/wishlist/add", async (req, res) => {
     const { email, productId } = req.body;
 
     const result = await userCollection.updateOne(
@@ -269,6 +271,55 @@ const dbConnect = async () => {
     );
 
     res.send(result);
+  });
+
+  //get data from wish list
+
+  app.get("/wishlist/:id", verifyJWT, async (req, res) => {
+    const id = req.params.id;
+
+    const user = await userCollection.findOne({
+      _id: new ObjectId(String(id)),
+    });
+    if (!user) {
+      return res.send({ message: "User Not Found" });
+    }
+
+    const wishlist = await productCollection
+      .find({ _id: { $in: user.wishlist || [] } })
+      .toArray();
+    res.send(wishlist);
+  });
+
+  //update cartlist
+
+  app.patch("/cartlist/add", async (req, res) => {
+    const { email, productId } = req.body;
+
+    const result = await userCollection.updateOne(
+      { email: email },
+      { $addToSet: { cartlist: new ObjectId(String(productId)) } }
+    );
+
+    res.send(result);
+  });
+
+  //get data from cart list
+
+  app.get("/cartlist/:id", verifyJWT, async (req, res) => {
+    const id = req.params.id;
+
+    const user = await userCollection.findOne({
+      _id: new ObjectId(String(id)),
+    });
+    if (!user) {
+      return res.send({ message: "User Not Found" });
+    }
+
+    const cartlist = await productCollection
+      .find({ _id: { $in: user.cartlist || [] } })
+      .toArray();
+    res.send(cartlist);
   });
 
   app.get("/all-product/:id", async (req, res) => {
