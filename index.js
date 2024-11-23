@@ -67,6 +67,7 @@ const client = new MongoClient(url, {
 
 const userCollection = client.db("void_tech").collection("users");
 const productCollection = client.db("void_tech").collection("products");
+const messageCollection = client.db("void_tech").collection("messages");
 
 const dbConnect = async () => {
   try {
@@ -158,12 +159,43 @@ const dbConnect = async () => {
     console.log(error.name, error.message);
   }
 
+  // post message
+  
+  app.post("/add-products", async (req, res) => {
+  const message = req.body;
+  const result = await messageCollection.insertOne(message);
+  res.send(result);
+});
+
+ // get message
+
+ app.get("/message", async (req, res) =>{
+   
+  const message = await messageCollection.find({}).toArray();
+  res.status(200).json(message);
+
+ })
+
+
+
   //add product
 
   app.post("/add-products", verifyJWT, verifySeller, async (req, res) => {
     const product = req.body;
     const result = await productCollection.insertOne(product);
     res.send(result);
+  });
+
+  //get all feature product
+
+  app.get("/products", async (req, res) => {
+    try {
+      const products = await productCollection.find({}).limit(6).toArray();
+      res.status(200).json(products);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).send({ message: "Internal Server Error" });
+    }
   });
 
   // get user product
