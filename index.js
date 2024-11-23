@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken");
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://void-5f988.web.app",
     optionsSuccessStatus: 200,
     methods: ["GET", "POST", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -321,6 +321,34 @@ const dbConnect = async () => {
       .toArray();
     res.send(cartlist);
   });
+
+  // DELETE route to remove a product
+  app.delete(
+    "/delete-product/:id",
+    verifyJWT,
+    verifySeller,
+    async (req, res) => {
+      const { id } = req.params;
+
+      try {
+        // Delete the product from the database
+        const result = await productCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result.deletedCount > 0) {
+          res.send({ success: true, message: "Product deleted successfully" });
+        } else {
+          res.send({ success: false, message: "Product not found" });
+        }
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal Server Error" });
+      }
+    }
+  );
 
   app.get("/all-product/:id", async (req, res) => {
     const id = req.params.id;
